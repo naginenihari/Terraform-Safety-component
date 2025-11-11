@@ -29,7 +29,7 @@ provisioner "file" {
   }
 
   provisioner "remote-exec" {
-    inline = [ 
+    inline = [
         "chmod +x /tmp/bootstrap.sh",
         "sudo sh /tmp/bootstrap.sh ${var.component} ${var.environment}"
      ]
@@ -39,12 +39,12 @@ resource "aws_ec2_instance_state" "main" {
   instance_id = aws_instance.main.id
   state       = "stopped"
   force       = false # Set to true for a forced stop if necessary
-  depends_on = [ terraform_data.main ]
+  depends_on = [terraform_data.main]
 }
 resource "aws_ami_from_instance" "main" {
   name               = "${local.common_name_suffix}-${var.component}-AMI"
   source_instance_id = aws_instance.main.id
-  depends_on = [ aws_ec2_instance_state.main ]
+  depends_on = [aws_ec2_instance_state.main]
     
     tags = merge (
         local.common_tags,
@@ -74,7 +74,7 @@ resource "aws_lb_target_group" "main" {
 }
 
 resource "aws_launch_template" "main" {
-  name ="${var.project_name}-${var.environment}-${var.component}"
+  name ="${local.common_name_suffix}-${var.component}"
   image_id =aws_ami_from_instance.main.id
   instance_initiated_shutdown_behavior = "terminate"
   instance_type = "t2.micro"
@@ -139,7 +139,7 @@ resource "aws_autoscaling_group" "main" {
    for_each = merge(
    local.common_tags,
  {
-  Name="${local.common_name_suffix}-${var.component}"
+  Name = "${local.common_name_suffix}-${var.component}"
  }
 )
 content {
@@ -159,14 +159,14 @@ resource "aws_autoscaling_policy" "main" {
   policy_type = "TargetTrackingScaling"
   target_tracking_configuration {
    predefined_metric_specification {
-    predefined_metric_type = "ASGAverageCPUUtilization" 
+    predefined_metric_type = "ASGAverageCPUUtilization"
   }
 target_value = 70 
   }
 }
 
 resource "aws_lb_listener_rule" "main" {
-  listener_arn =local.listener_arn
+  listener_arn = local.listener_arn
   priority     = var.rule_priority
 
   action {
@@ -186,7 +186,7 @@ resource "terraform_data" "main_local" {
     aws_instance.main.id
   ]
 
-  depends_on = [ aws_autoscaling_policy.main ]
+  depends_on = [aws_autoscaling_policy.main]
   provisioner "local-exec" {
     command = "aws ec2 terminate-instances --instance-ids ${aws_instance.main.id}"
   }
