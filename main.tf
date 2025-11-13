@@ -7,7 +7,7 @@ resource "aws_instance" "main" {
     tags = merge (
         local.common_tags,
         {
-            Name ="${local.common_name_suffix}-${var.component}"
+            Name = "${local.common_name_suffix}-${var.component}"
         }
     )
 }
@@ -49,23 +49,23 @@ resource "aws_ami_from_instance" "main" {
     tags = merge (
         local.common_tags,
         {
-            Name ="${local.common_name_suffix}-${var.component}-ami"
+            Name = "${local.common_name_suffix}-${var.component}-ami"
         }
     )
 }
 
 resource "aws_lb_target_group" "main" {
-  name     = "${var.project_name}-${var.environment}-${var.component}"
+  name     = "${local.common_name_suffix}-${var.component}"
   port     = local.tg_port ## If frontend port number is 80,otherwise port is 8080
   protocol = "HTTP"
   vpc_id   = local.vpc_id
-  deregistration_delay = 60
+  deregistration_delay = 60 # waiting period before deleting the instance
 
   health_check {
     healthy_threshold = 2
     interval = 10
     matcher = "200-299"
-    path =local.health_check_path
+    path = local.health_check_path
     port = local.tg_port
     protocol = "HTTP"
     timeout = 2
@@ -84,7 +84,7 @@ update_default_version = true
   tag_specifications {
     resource_type = "instance"
 
- tags = merge (
+ tags = merge(
         local.common_tags,
         {
             Name = "${local.common_name_suffix}-${var.component}"
@@ -95,7 +95,7 @@ update_default_version = true
  tag_specifications {
     resource_type = "volume"
 
- tags = merge (
+ tags = merge(
         local.common_tags,
         {
             Name = "${local.common_name_suffix}-${var.component}"
@@ -103,7 +103,7 @@ update_default_version = true
     )
   }
 
-   tags = merge (
+   tags = merge(
         local.common_tags,
         {
             Name = "${local.common_name_suffix}-${var.component}"
@@ -176,7 +176,7 @@ resource "aws_lb_listener_rule" "main" {
 
   condition {
     host_header {
-      values= [local.host_context]
+      values = [local.host_context]
     }
   }
 }
